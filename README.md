@@ -1,71 +1,42 @@
 # Orometry-based Terrain Analysis and Synthesis
 ![Teaser image](./img/teaser.jpg)
-Given a terrain example, our method analyses different metrics related to its peaks and saddles graph (the Divide Tree), and then automatically synthesizes a heightfield conforming to these statistics.
+Given a terrain example, the used method analyses different metrics related to its peaks and saddles graph (the Divide Tree), and then automatically synthesizes a heightfield conforming to these statistics.
 
+I am not the original author, but I did rewrite the author's original code to make it usable for my project.
 
-## Repository contents
+## runnig the code
 
-This repository contains our implementation of the paper, needed data, and examples on executing the code.
+pip3 install requirements .txt
 
-| Directory | Description |
-| ---: | :--- |
-| **[analysis](./analysis)**  | Python package with functions related to analysis of peak orometrics. |
-| **[data](./data)**  | Peak data and statistics. *Check the README.md inside this directory for important setup instructions*. |
-| **[img](./img)**  | Teaser image and other beautiful pictures of our synthetic terrains rendered using VUE. |
-| **[input](./input)**  | Example user input maps as used for some of the figures in the article. |
-| **[results](./results)**  | Some of our resulting terrains shown in the article, including their orometrics and divide trees. |
-| **[synthesis](./synthesis)**  | Python package with functions related to Divide Tree synthesis and terrain generation. |
-| **[utils](./utils)**  | Python package with auxiliary and common functions to either section. |
+check the original authors' repository and the .txt files in data, there is a link to a google drive document containing peaks and isolines (?) for earth. That's necessary input, everything else is more or less hardcoded in the main .py files.
 
-The directories/packages ``analysis``, ``synthesis`` contain the code regarding their respective parts of the article. Inside ``utils`` there are auxiliary and common functions to both parts.
+if you have downloaded and replaced the input files execute in this order:
 
-
-## Running the code
-
-We provide several *jupyter notebooks* that will serve as a guide on using the code.
-
-**Analysis.ipynb**: given a set of input shapefiles for the desired regions, computes the list of peaks inside each region and computes the sampled disk statistics. You need to run this script before Classifier or Synthesis, since they rely on some of the outputs produced by it. 
-
-**Classifier.ipynb**: the first part demonstrates how to compute the classification matrix for a set of terrains as shown in the article. The second part contains the utility to classify an arbitrary list of peaks (e.g. a synthetic terrain) into these region classes. It corresponds to sections 4.2 and 7.1 in the paper.
-
-**Synthesis.ipynb**: divide tree synthesis demo, using a user input coarse elevation map and peak density map. Most of the code here is input, configuration and visualization. The parameters for the synthesis are passed in a dictionary, check the comments for details. This is section 5 in the article.
-
-**TerrainFromDivtree.ipynb**: code to transform a divide tree into a TIN or DEM. Again, most of the code here is input or debug visualitzations, check the comments for info about the parameters of the reconstruction function. This is section 6 in the article.
-
-**PlotHistograms.ipynb**: reads a peaks file CSV and computes the disk statistics for a given (latitude,longitude) pair, then plots the histograms as shown in the paper.
-
-**PlotDivtrees.ipynb**: reads png DEM files and their Divide Tree in txt format, then plots the peaks, saddles and edges of the tree on top of the DEM for visualization, as shown in the paper and supplementary material.
-
-
-## Python environment
-
-In order to run our code, you will need the following packages:
 ```
-numpy, pandas, scipy, scikit-learn,   # numerical and data libraries
-pyshp, shapely,                       # to process the region shapefiles and have geometric test functions
-noise, pot, triangle,                 # additional utilities: noise, optimal transport and constrained Delaunay
-pillow, scikit-image, opencv,         # image libraries (we could probably do everything with only scikit or opencv?)
-matplotlib, jupyter                   # if you want to use the sample notebooks
+Analysis.py
+Synthesis.py
+TerrainFromDivtree.py
 ```
 
-We tested the provided code on a new Python 3.7 environment using Miniconda. All packages were installed using ``conda install`` except ``triangle``, which we had to install with ``pip``. 
+It should just work and produce an .obj file.
 
-
-## Divide Tree from a DEM
-
-Regarding the analysis of a DEM in order to extract its Divide Tree, we edited the source code of [Andrew Kirmse's prominence program](https://github.com/akirmse/mountains) to read DEM of various dimensions and cell sizes instead of the SRTM definitions, as well as adding an export function of the divide tree as a TXT, later used by our code.
-
-You can check out this [release](https://github.com/oargudo/mountains/releases/tag/single-dem_1.0) from my fork of Andrew Kirmse's code, which replicates the necessary modifications that we did during the paper. Note that it is not the exact code we used during our experiments, so there might be some differences.
-
-The input requires as ASCII Grid file. Note that this version of the code already produces a unified output with the prominence and isolation of all the peaks, i.e. no need to merge the two lists later. This functionality has been added recently.
-
+If you want to change which region is analysed and reproduced, take a look at the different, and either a different predefined region or make your own, the .shp files are xml files containing lat long descriptions of polygons on earth. I have not found a software that you can easily draw them with, but that should not be a big blocker to you.
 
 ## Remarks, improvements, and to-do
 
-The code we provide here is a cleaned version of our research code and is provided *as is*. It would be nice to have a Divide Tree class encapsulating peaks, saddles and connectivity, as well as the reading/writing functions. Or to provide a library/package to compute the metrics.
+I converted the original jupyter notebooks and encapsulated what I could.
 
-The erosion post-process on the terrain is not included either, since we used a C++ code that heavily depends on some internal libraries of our team. However, good aesthetic results can also be achieved with the erosion tools in other software (e.g. we experimented with Houdini). However, note that these implementations will not apply the compensating uplift that avoids eroding peaks, saddles and ridges to preserve the orometrics.
+There are some left overs of (imo) unnecessary file I/O that may be nice for experimenting, but aren't strictly required and probably slow down the execution overall.
 
+There is also the original verification code included which I don't really need, I'm pretty happy with the result and that's good enough for me. Who when I will cut that.
+
+## big to-do
+
+The original work works and produces an impressive result. But the output is not "production ready" for me, because there are problems at the edges of the generated .obj (which is normal for the approach they have chosen) and more importantly, I want to blend mountain and terrain types, and/or produce compatible pieces in neighboring tiles.
+
+That's not possible out of the box and probably something I will work on.
+
+# original work
 
 ## Article
 
@@ -73,7 +44,7 @@ The article is published in [ACM Transactions on Graphics](https://doi.org/10.11
 
 Check also the supplementary material [here](https://dl.acm.org/ft_gateway.cfm?id=3356535&type=zip&path=%2F3360000%2F3356535%2Fsupp%2Fa199%2Dargudo%2Ezip&supp=1&dwn=1).
 
-If you use this code for your research, please cite our paper:
+If you use this code for your research, please cite the author's paper:
 ```
 @article{Argudo2019orometry,
     title = {Orometry-based Terrain Analysis and Synthesis},
@@ -87,6 +58,6 @@ If you use this code for your research, please cite our paper:
 
 ## Acknowledgements
 
-* Christian Hill for the [Poisson Disc sampling code](https://scipython.com/blog/power-spectra-for-blue-and-uniform-noise/), which I copied into [utils.poisson](./utils/poisson.py).
+* Christian Hill for the [Poisson Disc sampling code](https://scipython.com/blog/power-spectra-for-blue-and-uniform-noise/), which the authors originally copied into [utils.poisson](./utils/poisson.py).
 
 * Andrew Kirmse for sharing his result datasets of world prominences and isolations, as well as the to compute these metrics. Check out [his repository](https://github.com/akirmse/mountains).
