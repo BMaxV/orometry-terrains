@@ -1,12 +1,12 @@
-from utils.distributions import *
-from utils.coords import *
+from utils import distributions
+from utils import coords
 
 # add extra columns with the metrics to the dataframe
 def addExtraColumns(df):
 
     # add extra columns to the dataframe
-    elevation  = feet2m(df['elevation in feet'].values)
-    prominence = feet2m(df['prominence in feet'].values)
+    elevation  = coords.feet2m(df['elevation in feet'].values)
+    prominence = coords.feet2m(df['prominence in feet'].values)
     saddleElev = elevation - prominence
     dominance  = prominence/elevation
     isolation  = df['isolation in km'].values
@@ -40,18 +40,43 @@ def addExtraColumns(df):
 
 
 def filterPeaksHaversineDist(peaks, diskCenter, diskRadius):
+    # this is not really filtering with a circle,it's filtering 
+    # with a square.
+    # so... "radius"
     
     # prefilter peaks
-    filterLat = np.logical_and(peaks['latitude'] > diskCenter[0] - km2deg(diskRadius), 
-                               peaks['latitude'] < diskCenter[0] + km2deg(diskRadius))
-    filterLon = np.logical_and(peaks['longitude'] > diskCenter[1] - km2deg(diskRadius, diskCenter[0]),
-                               peaks['longitude'] < diskCenter[1] + km2deg(diskRadius, diskCenter[0]))
+    radius_base = coords.km2deg(diskRadius)
+    radius_2 = coords.km2deg(diskRadius, diskCenter[0])
+    
+    dcx = diskCenter[0]
+    dcy = diskCenter[1]
+    
+    p_lat = peaks['latitude']
+    p_long = peaks['longitude']
+    
+    lat_bigger = p_lat > dcx - radius_base
+    lat_smaller = p_lat < dcx + radius_base
+    
+    filterLat = np.logical_and(lat_bigger, lat_smaller)
+                               
+    long_bigger = p_long > dcy - radius_2
+    long_smaller = p_long < dcy + radius_2
+    
+    filterLon = np.logical_and(long_bigger, long_smaller)
+    
     peaksRect = peaks[np.logical_and(filterLat, filterLon)]
 
     # keep the peaks inside radius
     peaksIdx = []
     for i in range(peaksRect.shape[0]):
-        if distance_haversine(diskCenter, (peaksRect.iloc[i]['latitude'], peaksRect.iloc[i]['longitude'])) < diskRadius:
+        
+        peak_lat = peaksRect.iloc[i]['latitude']
+        peak_long = peaksRect.iloc[i]['longitude']
+        peak_tup = (peak_lat, peak_long)
+        
+        haver_res = distance_haversine(diskCenter, peak_tup)
+        
+        if haver_res < diskRadius:
             peaksIdx.append(i)
             
     return peaksRect.iloc[peaksIdx]

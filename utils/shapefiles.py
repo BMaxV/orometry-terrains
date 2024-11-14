@@ -1,6 +1,8 @@
 import shapefile  # http://github.com/GeospatialPython/pyshp
 from shapely.geometry import Point, Polygon, MultiPolygon
-from .coords import *
+from utils import coords
+import numpy as np
+#.coords import *
 
 
 def polygonFromShapefile(shapeFilePath):
@@ -28,18 +30,20 @@ def sampleShapefileLocations(shapeFilePath, diskRadius):
     regionPoly = polygonFromShapefile(shapeFilePath)
     
     # erode the radius
-    regionPoly = regionPoly.buffer(-km2deg(diskRadius))
+    diff = coords.km2deg(diskRadius)
+    # coincidentally the same as stepSizeLat ?
+    regionPoly = regionPoly.buffer(-diff)
     
     # sample stats locations inside polygon
     minLon, minLat, maxLon, maxLat = regionPoly.bounds
     sampleLocations = []
     
     # latitude step is constant
-    stepSizeLat = km2deg(diskRadius)
+    stepSizeLat = coords.km2deg(diskRadius)
     glat = minLat + stepSizeLat*0.25
     while glat <= maxLat:
         # longitude step depends on latitude
-        stepSizeLon = km2deg(diskRadius, glat)
+        stepSizeLon = coords.km2deg(diskRadius, glat)
         glon = minLon + stepSizeLon*0.25
         while glon <= maxLon:
             # perturb grid position by 1/4 of grid size (minimum possible distance will be 1/2 grid size)

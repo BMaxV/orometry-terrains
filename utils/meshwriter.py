@@ -1,12 +1,13 @@
 import numpy as np
 from shapely.geometry import Polygon, Point
 
+# these are almost unchanged, I merely put the cropping into a function
+# and the writing into a "with"
 
-def writeTerrainMesh(objName, meshVerts, meshElevs, meshTris, bbox):
-
+def crop_to_bbox(meshTris,meshVerts,meshElevs,bbox):
     # crop to bbox
     numTris = meshTris.shape[0]
-    trisInside = [False for _ in range(numTris)]
+    trisInside = [False for x in range(numTris)]
     for ti in range(numTris):
 
         tri = meshTris[ti]
@@ -35,6 +36,12 @@ def writeTerrainMesh(objName, meshVerts, meshElevs, meshTris, bbox):
 
         else:
             trisInside[ti] = True
+    
+    return meshTris, meshVerts, meshElevs
+
+def writeTerrainMesh(objName, meshVerts, meshElevs, meshTris, bbox):
+    
+    meshTris, meshVerts, meshElevs = crop_to_bbox(meshTris,meshVerts,meshElevs,bbox)
 
     # clean unused verts
     vertInMesh = np.full((meshVerts.shape[0],), False)
@@ -42,20 +49,19 @@ def writeTerrainMesh(objName, meshVerts, meshElevs, meshTris, bbox):
     vertNewIdx = np.cumsum(vertInMesh)    
     
     # write obj
-    fout = open(objName, 'w')
-    fout.write('# obj file\n')
-    for i,v in enumerate(meshVerts):
-        if vertInMesh[i]:
-            fout.write('v %.2f %.5f %.5f\n' % (np.clip(v[0], bbox.bounds[0], bbox.bounds[2]), 
-                                               np.clip(v[1], bbox.bounds[1], bbox.bounds[3]), 
-                                               0.001*meshElevs[i]))
-    for i,tri in enumerate(meshTris):
-        p0 = np.array([meshVerts[tri[0]][0], meshVerts[tri[0]][1], 0])
-        p1 = np.array([meshVerts[tri[1]][0], meshVerts[tri[1]][1], 0])
-        p2 = np.array([meshVerts[tri[2]][0], meshVerts[tri[2]][1], 0])
-        if np.cross(p1-p0, p2-p0)[2] > 0:
-            fout.write('f %d %d %d\n' % (vertNewIdx[tri[0]], vertNewIdx[tri[1]], vertNewIdx[tri[2]]))
-        else:
-            fout.write('f %d %d %d\n' % (vertNewIdx[tri[2]], vertNewIdx[tri[1]], vertNewIdx[tri[0]]))
-
-    fout.close()
+    with open(objName, 'w') as fout:
+        fout.write('# obj file\n')
+        for i,v in enumerate(meshVerts):
+            if vertInMesh[i]:
+                fout.write('v %.2f %.5f %.5f\n' % (np.clip(v[0], bbox.bounds[0], bbox.bounds[2]), 
+                                                   np.clip(v[1], bbox.bounds[1], bbox.bounds[3]), 
+                                                   0.001*meshElevs[i]))
+        for i,tri in enumerate(meshTris):
+            p0 = np.array([meshVerts[tri[0]][0], meshVerts[tri[0]][1], 0])
+            p1 = np.array([meshVerts[tri[1]][0], meshVerts[tri[1]][1], 0])
+            p2 = np.array([meshVerts[tri[2]][0], meshVerts[tri[2]][1], 0])
+            if np.cross(p1-p0, p2-p0)[2] > 0:
+                fout.write('f %d %d %d\n' % (vertNewIdx[tri[0]], vertNewIdx[tri[1]], vertNewIdx[tri[2]]))
+            else:
+                fout.write('f %d %d %d\n' % (vertNewIdx[tri[2]], vertNewIdx[tri[1]], vertNewIdx[tri[0]]))
+        

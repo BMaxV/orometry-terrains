@@ -73,6 +73,8 @@ def generatePeaks(numPeaks, terrainSize, distributions, probMap, elevMap, fixedP
     hmax        = distributions['elevation']['bins'][:-1][distributions['elevation']['hist'] > 0][-1]
     elevRange   = hmax - hmin
     
+    #print("range",elevRange)
+    
     for pi in range(numSamples):
         
         # neighbors kd-tree
@@ -149,7 +151,7 @@ def createDelaunayGraph(peakCoords, peakElevs, probMap, terrainSize, distributio
     numTris = dtris.simplices.shape[0]
     
     saddleCoords = np.empty((3*numTris, 2))
-    saddlePeaks  = np.empty((3*numTris, 2), dtype=np.int)
+    saddlePeaks  = np.empty((3*numTris, 2), dtype=int)
     saddleWeight = np.empty((3*numTris, 1))
     numSaddles = 0
 
@@ -209,7 +211,7 @@ def generateRidgeTree(peakCoords, peakElevs, saddleCoords, saddlePeaks, saddleWe
     # clean saddles to those only in T
     numResSaddles   = numPeaks - 1
     resSaddleCoords = np.zeros((numResSaddles, 2))                   # coords
-    resSaddlePeaks  = np.full ((numResSaddles, 2), -1, dtype=np.int) # the two peaks on this saddle
+    resSaddlePeaks  = np.full ((numResSaddles, 2), -1, dtype=int) # the two peaks on this saddle
     saddleMaxHeight = np.zeros((numResSaddles, ))                    # maximum possible height (min of both peaks)
     saddleWidth     = np.zeros((numResSaddles, ))                    # ridge width of the saddle
 
@@ -252,7 +254,7 @@ def computeCostDominances(peakElevs, peakDoms, peakRangeDom, sampleDoms, peakSad
     peaksByHeight = np.argsort(peakElevs)[::-1] + 1
     highestPeak = peakElevs.argmax()
             
-    C = np.zeros((numPeaks, numSamples), dtype=np.float)
+    C = np.zeros((numPeaks, numSamples), dtype=float)
     for i in range(numPeaks):    
         
         if i == highestPeak:
@@ -344,7 +346,7 @@ def computeCostProminences(peakElevs, peakProms, peakRangeProm, sampleProms,
     peaksByHeight = np.argsort(peakElevs)[::-1] + 1
     highestPeak = peakElevs.argmax()
     
-    C = np.zeros((numPeaks, numSamples), dtype=np.float)
+    C = np.zeros((numPeaks, numSamples), dtype=float)
     for i in range(numPeaks):    
         
         if i == highestPeak:
@@ -662,7 +664,7 @@ def synthDivideTree(distributions, distribsPromBin, distribsPromAcc, promGroups,
             print('Keeping saddles %d: %d errors' % (bestSaddles, promDifferences[bestSaddles] + domDifferences[bestSaddles]))
 
             saddleElevs = prevSaddleElevs[bestSaddles]
-            peakSaddle, peakParent, peakProms, _ = computeProminences(RidgeTree, peakElevs, saddleElevs, saddlePeaks)   
+            peakSaddle, peakParent, peakProms, KeySaddleMatrix = computeProminences(RidgeTree, peakElevs, saddleElevs, saddlePeaks)   
 
             # ensure minimum prominence
             promAdjustment = np.maximum(0, promEpsilon - peakProms[peakSaddle >= 0])

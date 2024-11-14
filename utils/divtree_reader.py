@@ -3,7 +3,7 @@ from utils.coords import *
 
 
 def readDivideTree(filepath, crop=[], returnDEMCoords=False):
-    
+    print(filepath)
     fin = open(filepath, 'r')
     
     doCrop = False
