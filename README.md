@@ -2,7 +2,7 @@
 ![Teaser image](./img/teaser.jpg)
 Given a terrain example, the used method analyses different metrics related to its peaks and saddles graph (the Divide Tree), and then automatically synthesizes a heightfield conforming to these statistics.
 
-I am not the original author, but I did rewrite the author's original code to make it usable for my project.
+I am not the original author, but I did rewrite the author's original code to make it usable for my project. Check out the original author's paper at the end of this readme!
 
 ## runnig the code
 
